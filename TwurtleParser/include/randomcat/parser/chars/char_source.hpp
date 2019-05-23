@@ -223,7 +223,7 @@ namespace randomcat::parser {
             string_type read(size_type _n) noexcept {
                 auto charArr = std::make_unique<char_type[]>(_n);
                 stream().read(charArr.get(), _n);
-                stream().clear(stream().rdstate() & ~std::ios_base::failbit);
+                stream().clear(stream().rdstate() & ~(std::ios_base::failbit | std::ios_base::eofbit));
                 return string_type(charArr.get(), (charArr.get()) + stream().gcount());
             }
 
