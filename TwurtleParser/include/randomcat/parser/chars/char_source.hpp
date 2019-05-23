@@ -211,7 +211,10 @@ namespace randomcat::parser {
 
             location_type head() const noexcept { return stream().tellg(); }
 
-            void set_head(location_type _head) noexcept { stream().seekg(_head); }
+            void set_head(location_type _head) noexcept {
+                stream().clear(stream().rdstate() & ~(std::ios_base::failbit | std::ios_base::eofbit));
+                stream().seekg(_head);
+            }
 
             char_type peek_char() const noexcept { return gsl::narrow<char_type>(peek_int_type()); }
 
