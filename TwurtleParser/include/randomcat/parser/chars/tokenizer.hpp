@@ -15,12 +15,10 @@
 #include "randomcat/parser/chars/char_parse_result.hpp"
 #include "randomcat/parser/chars/char_source.hpp"
 #include "randomcat/parser/chars/detail/char_traits.hpp"
+#include "randomcat/parser/detail/defaults.hpp"
 #include "randomcat/parser/detail/util.hpp"
 
 namespace randomcat::parser {
-    using default_priority_type = char_traits_detail::default_priority_type;
-    using default_size_type = char_traits_detail::default_size_type;
-
     template<typename Tokenizer>
     struct tokenizer_traits {
         using token_type = char_traits_detail::token_type_t<Tokenizer>;

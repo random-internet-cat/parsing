@@ -8,10 +8,9 @@
 #include <randomcat/parser/chars/tokenizer.hpp>
 #include <randomcat/parser/detail/util.hpp>
 
-namespace randomcat::parser::char_traits_detail {
-    using default_size_type = std::size_t;
-    using default_priority_type = std::int32_t;
+#include "randomcat/parser/detail/defaults.hpp"
 
+namespace randomcat::parser::char_traits_detail {
     template<typename T, typename = void>
     struct char_source_char_types {
         using char_type = char;
