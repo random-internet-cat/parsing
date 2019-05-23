@@ -148,7 +148,7 @@ namespace randomcat::parser {
 
         void set_head(location_type _location) {
             m_location = std::move(_location);
-            char_source_traits<FromSource>::set_head(_location.fromSourceLocation);
+            token_stream_traits<FromSource>::set_head(m_fromSource, m_location.fromSourceLocation);
             m_pendingTokens.clear();
 
             // We assume that going back to a previous head will yield the same token sequence.
