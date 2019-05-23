@@ -183,7 +183,7 @@ namespace randomcat::parser {
             CharSource const& as_immutable() const noexcept { return m_source.get(); }
 
             std::reference_wrapper<CharSource const> m_source;
-            size_type m_charsParsed;
+            size_type m_charsParsed = 0;
             location_type m_startHead;
         };
     };
