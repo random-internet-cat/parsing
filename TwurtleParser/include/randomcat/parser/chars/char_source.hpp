@@ -7,6 +7,8 @@
 namespace randomcat::parser {
     template<typename CharSource>
     struct char_source_traits {
+        static_assert(std::is_move_constructible_v<CharSource>);
+
         using char_type = char_traits_detail::char_type_t<CharSource>;
         using char_traits_type = char_traits_detail::char_traits_type_t<CharSource>;
         using string_type = char_traits_detail::string_type_t<CharSource>;
@@ -203,12 +205,6 @@ namespace randomcat::parser {
 
             base_istream_char_source() = default;
 
-            base_istream_char_source(base_istream_char_source const&) = delete;
-            base_istream_char_source& operator=(base_istream_char_source const&) = delete;
-
-            base_istream_char_source(base_istream_char_source&&) = delete;
-            base_istream_char_source& operator=(base_istream_char_source&&) = delete;
-
             void advance_head(size_type _n) noexcept { stream().ignore(_n); }
 
             bool at_end() const noexcept { return peek_int_type() == char_traits_type::eof(); }
@@ -239,6 +235,12 @@ namespace randomcat::parser {
     class istream_ref_char_source : public char_source_detail::base_istream_char_source<istream_ref_char_source<CharT, Traits>, CharT, Traits> {
     public:
         using stream_type = std::basic_istream<CharT, Traits>;
+
+        istream_ref_char_source(istream_ref_char_source const&) = delete;
+        istream_ref_char_source(istream_ref_char_source&&) noexcept = default;
+
+        istream_ref_char_source& operator=(istream_ref_char_source const&) & = delete;
+        istream_ref_char_source& operator=(istream_ref_char_source&&) & noexcept = default;
 
         istream_ref_char_source(stream_type& _stream) : m_stream(_stream) {}
 
