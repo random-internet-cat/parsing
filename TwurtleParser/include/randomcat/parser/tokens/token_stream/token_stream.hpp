@@ -51,6 +51,8 @@ namespace randomcat::parser {
 
             void advance(size_type _n = 1) { return token_stream_traits::advance(source(), _n); }
 
+            TokenStream const& get() const noexcept { return m_source; }
+
         private:
             location_type m_startHead;
 
