@@ -206,8 +206,6 @@ namespace randomcat::parser {
             using size_type = typename string_type::size_type;
             using location_type = pos_type;
 
-            base_istream_char_source() = default;
-
             void advance_head(size_type _n) noexcept { stream().ignore(_n); }
 
             bool at_end() const noexcept { return peek_int_type() == char_traits_type::eof(); }
@@ -229,6 +227,9 @@ namespace randomcat::parser {
                 stream().clear(stream().rdstate() & ~(std::ios_base::failbit | std::ios_base::eofbit));
                 return string_type(charArr.get(), (charArr.get()) + stream().gcount());
             }
+
+        protected:
+            base_istream_char_source() = default;
 
         private:
             stream_type& stream() const noexcept { return static_cast<Derived const*>(this)->stream(); }
