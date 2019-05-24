@@ -26,6 +26,10 @@ namespace randomcat::parser {
             _stream.set_head(std::move(_head));
         }
 
+        static void advance(TokenStream& _stream, size_type _n = 1) noexcept(noexcept(read(_stream))) {
+            for (size_type i = 0; i < _n; ++i) read(_stream);
+        }
+
         static bool at_end(TokenStream const& _stream) noexcept(noexcept(_stream.at_end())) { return _stream.at_end(); }
 
         class access_wrapper {
