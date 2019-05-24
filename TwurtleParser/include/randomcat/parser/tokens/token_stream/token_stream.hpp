@@ -16,7 +16,7 @@ namespace randomcat::parser {
         using location_type = token_traits_detail::location_type_t<TokenStream>;
         using size_type = token_traits_detail::size_type_t<TokenStream>;
 
-        static token_type advance(TokenStream& _stream) noexcept(noexcept(_stream.advance())) { return _stream.advance(); }
+        static token_type read(TokenStream& _stream) noexcept(noexcept(_stream.read())) { return _stream.read(); }
 
         static token_type peek(TokenStream const& _stream) noexcept(noexcept(_stream.peek())) { return _stream.peek(); }
 
@@ -43,7 +43,7 @@ namespace randomcat::parser {
 
             token_type peek() const { return token_stream_traits::peek(m_source); }
 
-            token_type advance() { return token_stream_traits::advance(m_source); }
+            token_type read() { return token_stream_traits::read(m_source); }
 
         private:
             location_type m_startHead;
@@ -86,7 +86,7 @@ namespace randomcat::parser {
         using token_type = typename tokenizer_traits<Tokenizer>::token_type;
         using location_type = typename char_source_traits<CharSource>::location_type;
 
-        token_type advance() {
+        token_type read() {
             auto parseResult = do_parse();
             throw_if_empty(parseResult);
 
@@ -159,7 +159,7 @@ namespace randomcat::parser {
 
         token_type peek() const { return m_pendingTokens[m_location.subTokenIndex]; }
 
-        token_type advance() {
+        token_type read() {
             token_type token = peek();
 
             ++(m_location.subTokenIndex);
@@ -175,7 +175,7 @@ namespace randomcat::parser {
     private:
         void fetch_tokens_once() {
             if (not token_stream_traits<FromSource>::at_end(m_fromSource))
-                m_transform([this] { return token_stream_traits<FromSource>::advance(m_fromSource); },
+                m_transform([this] { return token_stream_traits<FromSource>::read(m_fromSource); },
                             [this] { return token_stream_traits<FromSource>::peek(m_fromSource); },
                             [this] { return token_stream_traits<FromSource>::at_end(m_fromSource); },
                             [this](token_type token) { m_pendingTokens.push_back(token); });
