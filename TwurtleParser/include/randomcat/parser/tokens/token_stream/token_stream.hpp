@@ -43,15 +43,20 @@ namespace randomcat::parser {
             explicit access_wrapper(TokenStream const& _source) noexcept
             : m_source(_source), m_startHead(token_stream_traits::head(_source)) {}
 
-            ~access_wrapper() noexcept { token_stream_traits::set_head(m_source, std::move(m_startHead)); }
+            ~access_wrapper() noexcept { token_stream_traits::set_head(source(), std::move(m_startHead)); }
 
-            token_type peek() const { return token_stream_traits::peek(m_source); }
+            token_type peek() const { return token_stream_traits::peek(source()); }
 
-            token_type read() { return token_stream_traits::read(m_source); }
+            token_type read() { return token_stream_traits::read(source()); }
+
+            void advance(size_type _n = 1) { return token_stream_traits::advance(source(), _n); }
 
         private:
             location_type m_startHead;
-            TokenStream const& m_source;
+
+            TokenStream& source() const noexcept { return const_cast<TokenStream&>(m_source); }
+
+            std::reference_wrapper<TokenStream const> m_source;
         };
     };
 
