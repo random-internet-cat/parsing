@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -74,4 +75,29 @@ namespace randomcat::parser {
         std::variant<size_type, ErrorType> m_value;
     };
 
+    template<typename ResultType>
+    class parse_result<ResultType, void> {
+    public:
+        using result_type = ResultType;
+        using error_type = void;
+        using size_type = std::size_t;
+
+        static_assert(util_detail::is_simple_type_v<ResultType>);
+
+        /* implicit */ constexpr parse_result(result_type _value, size_type _amountParsed)
+        : m_value({std::move(_value), std::move(_amountParsed)}) {}
+
+        /* implicit */ constexpr parse_result() : m_value(std::nullopt) {}
+
+        [[nodiscard]] constexpr bool is_value() const noexcept { return m_value.has_value(); }
+        [[nodiscard]] constexpr bool is_error() const noexcept { return not is_value(); }
+
+        [[nodiscard]] constexpr explicit operator bool() const noexcept { return is_value(); }
+
+        [[nodiscard]] constexpr result_type const& value() const noexcept { return std::get<0>(m_value.value()); }
+        [[nodiscard]] constexpr size_type amount_parsed() const noexcept { return std::get<1>(m_value.value()); }
+
+    private:
+        std::optional<std::pair<result_type, size_type>> m_value;
+    };
 }    // namespace randomcat::parser
