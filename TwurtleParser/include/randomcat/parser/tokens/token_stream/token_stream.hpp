@@ -36,7 +36,8 @@ namespace randomcat::parser {
             access_wrapper& operator=(access_wrapper const&) & = delete;
             access_wrapper& operator=(access_wrapper&&) & = delete;
 
-            access_wrapper(TokenStream const& _source) noexcept : m_source(_source), m_startHead(token_stream_traits::head(_source)) {}
+            explicit access_wrapper(TokenStream const& _source) noexcept
+            : m_source(_source), m_startHead(token_stream_traits::head(_source)) {}
 
             ~access_wrapper() noexcept { token_stream_traits::set_head(m_source, std::move(m_startHead)); }
 
@@ -79,7 +80,7 @@ namespace randomcat::parser {
         static_assert(util_detail::is_simple_type_v<CharSource>);
         static_assert(util_detail::is_simple_type_v<Tokenizer>);
 
-        char_source_token_stream(CharSource _charSource, Tokenizer _tokenizer)
+        explicit char_source_token_stream(CharSource _charSource, Tokenizer _tokenizer)
         : m_charSource(std::move(_charSource)), m_tokenizer(std::move(_tokenizer)) {}
 
         using token_type = typename tokenizer_traits<Tokenizer>::token_type;
@@ -134,7 +135,7 @@ namespace randomcat::parser {
         static_assert(util_detail::is_simple_type_v<FromSource>);
         static_assert(std::is_same_v<typename token_stream_traits<FromSource>::size_type, size_type>);
 
-        transform_token_stream(FromSource _fromSource, Transform _transform)
+        explicit transform_token_stream(FromSource _fromSource, Transform _transform)
         : m_transform(std::move(_transform)), m_fromSource(std::move(_fromSource)), m_location{token_stream_traits<FromSource>::head(_fromSource), 0} {
             fetch_tokens_if_needed();
         }

@@ -86,7 +86,7 @@ namespace randomcat::parser {
         using priority_type = default_priority_type;
         using size_type = char_traits_detail::size_type_t<string_type>;
 
-        simple_token_descriptor(token_type _token, string_type _string) noexcept
+        explicit simple_token_descriptor(token_type _token, string_type _string) noexcept
         // This is okay, since braced-init-list rules guarantee left-to-right evalution
         : simple_token_descriptor{_token, gsl::narrow<priority_type>(_string.size()), std::move(_string)} {}
 
@@ -128,7 +128,7 @@ namespace randomcat::parser {
         using priority_type = default_priority_type;
         using size_type = char_traits_detail::size_type_t<string_type>;
 
-        multi_form_token_descriptor(token_type _token, priority_type _priority, Strings... _strings) noexcept
+        explicit multi_form_token_descriptor(token_type _token, priority_type _priority, Strings... _strings) noexcept
         : m_strings(std::move(_strings)...), m_token(std::move(_token)), m_priority(std::move(_priority)) {}
 
         template<typename CharSource>

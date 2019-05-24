@@ -102,7 +102,7 @@ namespace randomcat::parser {
             access_wrapper(access_wrapper&&) = delete;
             access_wrapper& operator=(access_wrapper&&) = delete;
 
-            access_wrapper(CharSource const& _source) : m_source(_source), m_startHead(char_source_traits::head(m_source.get())) {}
+            explicit access_wrapper(CharSource const& _source) : m_source(_source), m_startHead(char_source_traits::head(m_source.get())) {}
 
             ~access_wrapper() noexcept { char_source_traits::set_head(as_mutable(), m_startHead); }
 
@@ -249,7 +249,7 @@ namespace randomcat::parser {
         istream_ref_char_source& operator=(istream_ref_char_source const&) & = delete;
         istream_ref_char_source& operator=(istream_ref_char_source&&) & noexcept = default;
 
-        istream_ref_char_source(stream_type& _stream) : m_stream(_stream) {}
+        explicit istream_ref_char_source(stream_type& _stream) : m_stream(_stream) {}
 
         stream_type& stream() const noexcept { return m_stream; }
 
@@ -263,7 +263,7 @@ namespace randomcat::parser {
     public:
         using stream_type = Stream;
 
-        istream_inplace_char_source(stream_type _stream) : m_stream(std::move(_stream)) {}
+        explicit istream_inplace_char_source(stream_type _stream) : m_stream(std::move(_stream)) {}
 
         stream_type& stream() const noexcept { return m_stream; }
 
@@ -283,7 +283,7 @@ namespace randomcat::parser {
 
         static_assert(std::is_same_v<typename string_type::size_type, typename string_view_type::size_type>);
 
-        string_char_source(string_type _string) noexcept : m_string(std::move(_string)) {}
+        explicit string_char_source(string_type _string) noexcept : m_string(std::move(_string)) {}
 
         bool at_end() const noexcept { return m_head == size(m_string); }
         location_type head() const noexcept { return m_head; }

@@ -21,13 +21,13 @@ namespace randomcat::parser {
 
         static_assert(not std::is_same_v<result_type, error_type>);
 
-        constexpr parse_result(result_type _value, size_type _amountParsed) noexcept(std::is_nothrow_move_constructible_v<result_type>)
+        /* implicit */ constexpr parse_result(result_type _value, size_type _amountParsed) noexcept(std::is_nothrow_move_constructible_v<result_type>)
         : m_value(std::in_place_index<0>, std::move(_value), std::move(_amountParsed)) {}
 
-        constexpr parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
+        /* implicit */ constexpr parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
         : m_value(std::in_place_index<1>, std::move(_value)) {}
 
-        constexpr parse_result() : parse_result(error_type()) {}
+        /* implicit */ constexpr parse_result() : parse_result(error_type()) {}
 
         [[nodiscard]] constexpr bool is_value() const noexcept { return m_value.index() == 0; }
 
@@ -54,9 +54,10 @@ namespace randomcat::parser {
 
         static_assert(util_detail::is_simple_type_v<ErrorType>);
 
-        constexpr parse_result(size_type _amountParsed) noexcept : m_value(std::in_place_index<0>, std::move(_amountParsed)) {}
+        /* implicit */ constexpr parse_result(size_type _amountParsed) noexcept
+        : m_value(std::in_place_index<0>, std::move(_amountParsed)) {}
 
-        constexpr parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
+        /* implicit */ constexpr parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
         : m_value(std::in_place_index<1>, std::move(_value)) {}
 
         [[nodiscard]] constexpr bool is_value() const noexcept { return m_value.index() == 0; }
