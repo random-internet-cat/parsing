@@ -9,11 +9,8 @@
 #include <randomcat/parser/detail/util.hpp>
 
 namespace randomcat::parser {
-    struct failed_expectation_t {};
-    inline constexpr failed_expectation_t failed_expectation{};
-
     template<typename ResultType, typename ErrorType>
-    class char_parse_result {
+    class parse_result {
     public:
         using result_type = ResultType;
         using error_type = ErrorType;
@@ -24,13 +21,13 @@ namespace randomcat::parser {
 
         static_assert(not std::is_same_v<result_type, error_type>);
 
-        constexpr char_parse_result(result_type _value, size_type _amountParsed) noexcept(std::is_nothrow_move_constructible_v<result_type>)
+        constexpr parse_result(result_type _value, size_type _amountParsed) noexcept(std::is_nothrow_move_constructible_v<result_type>)
         : m_value(std::in_place_index<0>, std::move(_value), std::move(_amountParsed)) {}
 
-        constexpr char_parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
+        constexpr parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
         : m_value(std::in_place_index<1>, std::move(_value)) {}
 
-        constexpr char_parse_result() : char_parse_result(error_type()) {}
+        constexpr parse_result() : parse_result(error_type()) {}
 
         [[nodiscard]] constexpr bool is_value() const noexcept { return m_value.index() == 0; }
 
@@ -49,7 +46,7 @@ namespace randomcat::parser {
     };
 
     template<typename ErrorType>
-    class char_parse_result<void, ErrorType> {
+    class parse_result<void, ErrorType> {
     public:
         using result_type = void;
         using error_type = ErrorType;
@@ -57,9 +54,9 @@ namespace randomcat::parser {
 
         static_assert(util_detail::is_simple_type_v<ErrorType>);
 
-        constexpr char_parse_result(size_type _amountParsed) noexcept : m_value(std::in_place_index<0>, std::move(_amountParsed)) {}
+        constexpr parse_result(size_type _amountParsed) noexcept : m_value(std::in_place_index<0>, std::move(_amountParsed)) {}
 
-        constexpr char_parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
+        constexpr parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
         : m_value(std::in_place_index<1>, std::move(_value)) {}
 
         [[nodiscard]] constexpr bool is_value() const noexcept { return m_value.index() == 0; }

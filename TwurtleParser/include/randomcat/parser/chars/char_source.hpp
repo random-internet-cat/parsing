@@ -1,10 +1,13 @@
 #pragma once
 
-#include "randomcat/parser/chars/char_parse_result.hpp"
 #include "randomcat/parser/chars/detail/char_traits.hpp"
 #include "randomcat/parser/detail/util.hpp"
+#include "randomcat/parser/parse_result.hpp"
 
 namespace randomcat::parser {
+    struct failed_expectation_t {};
+    inline constexpr failed_expectation_t failed_expectation{};
+
     template<typename CharSource>
     struct char_source_traits {
         static_assert(std::is_move_constructible_v<CharSource>);
@@ -149,8 +152,8 @@ namespace randomcat::parser {
                 return readChar == _c;
             }
 
-            char_parse_result<void, failed_expectation_t> expect(string_view_type _str) noexcept(noexcept(next_is(_str))
-                                                                                                 && noexcept(advance_head(std::declval<size_type>()))) {
+            parse_result<void, failed_expectation_t> expect(string_view_type _str) noexcept(noexcept(next_is(_str))
+                                                                                            && noexcept(advance_head(std::declval<size_type>()))) {
                 if (next_is(_str)) {
                     size_type strlen = size(_str);
                     advance_head(strlen);
@@ -160,8 +163,8 @@ namespace randomcat::parser {
                 return failed_expectation;
             }
 
-            char_parse_result<void, failed_expectation_t> expect(char_type _c) noexcept(noexcept(next_is(_c))
-                                                                                        && noexcept(advance_head(std::declval<size_type>()))) {
+            parse_result<void, failed_expectation_t> expect(char_type _c) noexcept(noexcept(next_is(_c))
+                                                                                   && noexcept(advance_head(std::declval<size_type>()))) {
                 if (next_is(_c)) {
                     size_type strlen = 1;
                     advance_head(strlen);

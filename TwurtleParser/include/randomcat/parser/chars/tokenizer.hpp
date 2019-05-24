@@ -12,11 +12,11 @@
 
 #include <gsl/gsl_util>
 
-#include "randomcat/parser/chars/char_parse_result.hpp"
 #include "randomcat/parser/chars/char_source.hpp"
 #include "randomcat/parser/chars/detail/char_traits.hpp"
 #include "randomcat/parser/detail/defaults.hpp"
 #include "randomcat/parser/detail/util.hpp"
+#include "randomcat/parser/parse_result.hpp"
 
 namespace randomcat::parser {
     template<typename Tokenizer>
@@ -31,7 +31,7 @@ namespace randomcat::parser {
 
         using error_type = char_traits_detail::error_type_t<Tokenizer>;
 
-        using parse_result_type = char_parse_result<token_type, error_type>;
+        using parse_result_type = parse_result<token_type, error_type>;
 
         template<typename CharSource>
         static constexpr parse_result_type parse_first_token(Tokenizer const& _tokenizer,
@@ -60,7 +60,7 @@ namespace randomcat::parser {
         }
 
         using error_type = char_traits_detail::error_type_t<TokenDescriptor>;
-        using parse_result_type = char_parse_result<token_type, error_type>;
+        using parse_result_type = parse_result<token_type, error_type>;
 
         template<typename CharSource>
         static constexpr parse_result_type parse_first_token(TokenDescriptor const& _tokenDescriptor,
@@ -81,7 +81,7 @@ namespace randomcat::parser {
 
         using error_type = no_matching_token_t;
 
-        using parse_result_type = char_parse_result<token_type, error_type>;
+        using parse_result_type = parse_result<token_type, error_type>;
 
         using priority_type = default_priority_type;
         using size_type = char_traits_detail::size_type_t<string_type>;
@@ -123,7 +123,7 @@ namespace randomcat::parser {
 
         using error_type = no_matching_token_t;
 
-        using parse_result_type = char_parse_result<token_type, error_type>;
+        using parse_result_type = parse_result<token_type, error_type>;
 
         using priority_type = default_priority_type;
         using size_type = char_traits_detail::size_type_t<string_type>;
@@ -180,7 +180,7 @@ namespace randomcat::parser {
         using token_type = Token;
 
         using error_type = no_matching_token_t;
-        using parse_result_type = char_parse_result<token_type, error_type>;
+        using parse_result_type = parse_result<token_type, error_type>;
 
         static_assert(util_detail::all_are_same_v<char_traits_detail::char_type_t<Token>, char_traits_detail::char_type_t<TokenParsers>...>);
         static_assert(util_detail::all_are_same_v<char_traits_detail::char_traits_type_t<Token>, char_traits_detail::char_traits_type_t<TokenParsers>...>);
@@ -251,7 +251,7 @@ namespace randomcat::parser {
     }
 
     template<typename Tokenizer, typename CharSource>
-    inline char_parse_result<std::vector<typename tokenizer_traits<Tokenizer>::token_type>, typename tokenizer_traits<Tokenizer>::error_type> tokenize(
+    inline parse_result<std::vector<typename tokenizer_traits<Tokenizer>::token_type>, typename tokenizer_traits<Tokenizer>::error_type> tokenize(
         Tokenizer const& _tokenizer,
         CharSource const& _chars) {
         using token_type = char_traits_detail::token_type_t<tokenizer_traits<Tokenizer>>;
