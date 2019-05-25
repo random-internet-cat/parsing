@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -179,7 +180,7 @@ namespace randomcat::parser {
     public:
         using token_type = Token;
 
-        using error_type = no_matching_token_t;
+        using error_type = std::tuple<typename token_descriptor_traits<TokenParsers>::error_type...>;
         using parse_result_type = parse_result<token_type, error_type>;
 
         static_assert(util_detail::all_are_same_v<char_traits_detail::char_type_t<Token>, char_traits_detail::char_type_t<TokenParsers>...>);
@@ -222,6 +223,8 @@ namespace randomcat::parser {
         constexpr parse_result_type parse_first_token_helper(std::index_sequence<Is...>, CharSource const& _chars) const noexcept {
             std::optional<max_token_t> maxToken;
 
+            std::tuple<std::optional<typename token_descriptor_traits<TokenParsers>::error_type>...> errors;
+
             ((
                  [&](auto const& tokenDescriptor) {
                      using descriptor_traits = token_descriptor_traits<std::tuple_element_t<Is, decltype(m_descriptors)>>;
@@ -232,12 +235,14 @@ namespace randomcat::parser {
                      if (tokenResult) {
                          auto const token = tokenResult.value();
                          maxToken = {token, priority, tokenResult.amount_parsed()};
+                     } else {
+                         std::get<Is>(errors) = tokenResult.error();
                      }
                  }(std::get<Is>(m_descriptors)),
                  void()),
              ...);
 
-            if (not maxToken) return no_matching_token;
+            if (not maxToken) return error_type{std::move(std::get<Is>(errors)).value()...};
 
             return {maxToken->token, maxToken->size};
         }
