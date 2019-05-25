@@ -56,7 +56,7 @@ namespace randomcat::parser {
         private:
             location_type m_startHead;
 
-            TokenStream& source() const noexcept { return const_cast<TokenStream&>(m_source); }
+            TokenStream& source() const noexcept { return const_cast<TokenStream&>(m_source.get()); }
 
             std::reference_wrapper<TokenStream const> m_source;
         };
