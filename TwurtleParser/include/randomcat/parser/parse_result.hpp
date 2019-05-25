@@ -38,7 +38,7 @@ namespace randomcat::parser {
 
         [[nodiscard]] constexpr result_type const& value() const noexcept { return std::get<0>(m_value).first; }
 
-        [[nodiscard]] constexpr auto const& error() const noexcept { return std::get<1>(m_value); }
+        [[nodiscard]] constexpr error_type const& error() const noexcept { return std::get<1>(m_value); }
 
         [[nodiscard]] constexpr size_type amount_parsed() const noexcept { return std::get<0>(m_value).second; }
 
@@ -67,7 +67,7 @@ namespace randomcat::parser {
 
         [[nodiscard]] constexpr explicit operator bool() const noexcept { return is_value(); }
 
-        [[nodiscard]] constexpr auto const& error() const noexcept { return std::get<1>(m_value); }
+        [[nodiscard]] constexpr error_type const& error() const noexcept { return std::get<1>(m_value); }
 
         [[nodiscard]] constexpr size_type amount_parsed() const noexcept { return std::get<0>(m_value); }
 
