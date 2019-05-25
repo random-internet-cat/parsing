@@ -10,19 +10,19 @@
 #include <randomcat/parser/detail/util.hpp>
 
 namespace randomcat::parser {
-    template<typename ResultType, typename ErrorType>
+    template<typename ValueType, typename ErrorType>
     class parse_result {
     public:
-        using result_type = ResultType;
+        using value_type = ValueType;
         using error_type = ErrorType;
         using size_type = std::size_t;
 
-        static_assert(util_detail::is_simple_type_v<ResultType>);
+        static_assert(util_detail::is_simple_type_v<ValueType>);
         static_assert(util_detail::is_simple_type_v<ErrorType>);
 
-        static_assert(not std::is_same_v<result_type, error_type>);
+        static_assert(not std::is_same_v<value_type, error_type>);
 
-        /* implicit */ constexpr parse_result(result_type _value, size_type _amountParsed) noexcept(std::is_nothrow_move_constructible_v<result_type>)
+        /* implicit */ constexpr parse_result(value_type _value, size_type _amountParsed) noexcept(std::is_nothrow_move_constructible_v<value_type>)
         : m_value(std::in_place_index<0>, std::move(_value), std::move(_amountParsed)) {}
 
         /* implicit */ constexpr parse_result(error_type _value) noexcept(std::is_nothrow_move_constructible_v<error_type>)
@@ -36,8 +36,8 @@ namespace randomcat::parser {
 
         [[nodiscard]] constexpr explicit operator bool() const noexcept { return is_value(); }
 
-        [[nodiscard]] constexpr result_type const& value() const& noexcept { return std::get<0>(m_value).first; }
-        [[nodiscard]] constexpr result_type&& value() && noexcept { return std::get<0>(std::move(m_value)).first; }
+        [[nodiscard]] constexpr value_type const& value() const& noexcept { return std::get<0>(m_value).first; }
+        [[nodiscard]] constexpr value_type&& value() && noexcept { return std::get<0>(std::move(m_value)).first; }
 
         [[nodiscard]] constexpr error_type const& error() const& noexcept { return std::get<1>(m_value); }
         [[nodiscard]] constexpr error_type&& error() && noexcept { return std::get<1>(std::move(m_value)); }
@@ -45,13 +45,13 @@ namespace randomcat::parser {
         [[nodiscard]] constexpr size_type amount_parsed() const noexcept { return std::get<0>(m_value).second; }
 
     private:
-        std::variant<std::pair<ResultType, size_type>, ErrorType> m_value;
+        std::variant<std::pair<ValueType, size_type>, ErrorType> m_value;
     };
 
     template<typename ErrorType>
     class parse_result<void, ErrorType> {
     public:
-        using result_type = void;
+        using value_type = void;
         using error_type = ErrorType;
         using size_type = std::size_t;
 
@@ -78,16 +78,16 @@ namespace randomcat::parser {
         std::variant<size_type, ErrorType> m_value;
     };
 
-    template<typename ResultType>
-    class parse_result<ResultType, void> {
+    template<typename ValueType>
+    class parse_result<ValueType, void> {
     public:
-        using result_type = ResultType;
+        using value_type = ValueType;
         using error_type = void;
         using size_type = std::size_t;
 
-        static_assert(util_detail::is_simple_type_v<ResultType>);
+        static_assert(util_detail::is_simple_type_v<ValueType>);
 
-        /* implicit */ constexpr parse_result(result_type _value, size_type _amountParsed)
+        /* implicit */ constexpr parse_result(value_type _value, size_type _amountParsed)
         : m_value({std::move(_value), std::move(_amountParsed)}) {}
 
         /* implicit */ constexpr parse_result() : m_value(std::nullopt) {}
@@ -97,12 +97,12 @@ namespace randomcat::parser {
 
         [[nodiscard]] constexpr explicit operator bool() const noexcept { return is_value(); }
 
-        [[nodiscard]] constexpr result_type const& value() const& noexcept { return std::get<0>(m_value.value()); }
-        [[nodiscard]] constexpr result_type&& value() && noexcept { return std::get<0>(std::move(m_value).value()); }
+        [[nodiscard]] constexpr value_type const& value() const& noexcept { return std::get<0>(m_value.value()); }
+        [[nodiscard]] constexpr value_type&& value() && noexcept { return std::get<0>(std::move(m_value).value()); }
 
         [[nodiscard]] constexpr size_type amount_parsed() const noexcept { return std::get<1>(m_value.value()); }
 
     private:
-        std::optional<std::pair<result_type, size_type>> m_value;
+        std::optional<std::pair<value_type, size_type>> m_value;
     };
 }    // namespace randomcat::parser
