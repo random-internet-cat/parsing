@@ -188,5 +188,26 @@ namespace randomcat::parser {
         std::tuple<SubGrammars...> m_subGrammars;
     };
 
+    template<typename Base, typename... Tags>
+    class tag_grammar {
+    public:
+        static_assert(util_detail::is_simple_type_v<Base>);
 
+        explicit tag_grammar(Base _subGrammar) : m_subGrammar(std::move(_subGrammar)) {}
+
+        template<typename TokenStream>
+        struct traits_for {
+            using value_type = typename grammar_traits<Base, TokenStream>::value_type;
+            using error_type = typename grammar_traits<Base, TokenStream>::error_type;
+            using result_type = typename grammar_traits<Base, TokenStream>::result_type;
+        };
+
+        template<typename TokenStream>
+        typename traits_for<TokenStream>::result_type test(TokenStream const& _tokenStream) {
+            return grammar_traits<Base, TokenStream>::test(m_subGrammar, _tokenStream);
+        }
+
+    private:
+        Base m_subGrammar;
+    };
 }    // namespace randomcat::parser
