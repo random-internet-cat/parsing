@@ -302,11 +302,11 @@ namespace randomcat::parser {
     };
 
     template<typename Base, typename... Tags>
-    class tag_grammar {
+    class tag_grammar_t {
     public:
         static_assert(util_detail::is_simple_type_v<Base>);
 
-        explicit tag_grammar(Base _subGrammar) : m_subGrammar(std::move(_subGrammar)) {}
+        constexpr explicit tag_grammar_t(Base _subGrammar) : m_subGrammar(std::move(_subGrammar)) {}
 
         template<typename TokenStream>
         struct traits_for {
@@ -316,11 +316,17 @@ namespace randomcat::parser {
         };
 
         template<typename TokenStream>
-        typename traits_for<TokenStream>::result_type test(TokenStream const& _tokenStream) {
+        constexpr typename traits_for<TokenStream>::result_type test(TokenStream const& _tokenStream) const
+            noexcept(noexcept(grammar_traits<Base, TokenStream>::test(m_subGrammar, _tokenStream))) {
             return grammar_traits<Base, TokenStream>::test(m_subGrammar, _tokenStream);
         }
 
     private:
         Base m_subGrammar;
     };
+
+    template<typename... Tags, typename Base>
+    constexpr inline tag_grammar_t<Base, Tags...> tag_grammar(Base _baseGrammar) {
+        return tag_grammar_t<Base, Tags...>(std::move(_baseGrammar));
+    }
 }    // namespace randomcat::parser
