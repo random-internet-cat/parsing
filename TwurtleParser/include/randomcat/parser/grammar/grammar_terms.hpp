@@ -27,6 +27,27 @@ namespace randomcat::parser {
         static result_type test(Grammar const& _grammar, TokenStream const& _tokenStream) { return _grammar.test(_tokenStream); }
     };
 
+    template<typename Grammar, typename TokenStream>
+    using grammar_value_type_t = typename grammar_traits<Grammar, TokenStream>::value_type;
+
+    template<typename Grammar, typename TokenStream>
+    using grammar_error_type_t = typename grammar_traits<Grammar, TokenStream>::error_type;
+
+    template<typename Grammar, typename TokenStream>
+    using grammar_result_type_t = typename grammar_traits<Grammar, TokenStream>::result_type;
+
+    template<typename Grammar, typename TokenStream>
+    inline auto grammar_test(Grammar const& _grammar, TokenStream const& _tokenStream)
+        -> decltype(grammar_traits<Grammar, TokenStream>::test(_grammar, _tokenStream)) {
+        return grammar_traits<Grammar, TokenStream>::test(_grammar, _tokenStream);
+    }
+
+    template<typename Grammar, typename TokenStream, typename = std::enable_if_t<not std::is_const_v<TokenStream>>>
+    inline auto grammar_advance_if_matches(Grammar const& _grammar, TokenStream& _tokenStream)
+        -> decltype(grammar_traits<Grammar, TokenStream>::advance_if_matches(_grammar, _tokenStream)) {
+        return grammar_traits<Grammar, TokenStream>::advance_if_matches(_grammar, _tokenStream);
+    }
+
     struct grammar_non_match_t {};
     inline constexpr grammar_non_match_t grammar_non_match;
 
@@ -163,11 +184,9 @@ namespace randomcat::parser {
         template<typename TokenStream>
         struct traits_for {
             using value_type =
-                grammar_tuple_detail::grammar_tuple<type_container::type_list<SubGrammars...>,
-                                                    type_container::type_list<typename grammar_traits<SubGrammars, TokenStream>::value_type...>>;
+                grammar_tuple_detail::grammar_tuple<type_container::type_list<SubGrammars...>, type_container::type_list<grammar_value_type_t<SubGrammars, TokenStream>...>>;
             using error_type =
-                grammar_variant_detail::grammar_variant<type_container::type_list<SubGrammars...>,
-                                                        type_container::type_list<typename grammar_traits<SubGrammars, TokenStream>::error_type...>>;
+                grammar_variant_detail::grammar_variant<type_container::type_list<SubGrammars...>, type_container::type_list<grammar_error_type_t<SubGrammars, TokenStream>...>>;
 
             using result_type = parse_result<value_type, error_type>;
         };
@@ -182,7 +201,7 @@ namespace randomcat::parser {
     private:
         template<std::size_t... Is, typename TokenStream>
         typename traits_for<TokenStream>::result_type test_helper(std::index_sequence<Is...>, TokenStream const& _tokenStream) const {
-            auto optTuple = std::tuple<std::optional<typename grammar_traits<SubGrammars, TokenStream>::value_type>...>();
+            auto optTuple = std::tuple<std::optional<grammar_value_type_t<SubGrammars, TokenStream>>...>();
             std::optional<typename traits_for<TokenStream>::error_type> error = std::nullopt;
 
             typename token_stream_traits<TokenStream>::access_wrapper accessWrapper(_tokenStream);
@@ -192,9 +211,7 @@ namespace randomcat::parser {
                  [&](auto const& subGrammar) {
                      if (error) return;
 
-                     using current_grammar_traits = grammar_traits<std::tuple_element_t<Is, decltype(m_subGrammars)>, TokenStream>;
-
-                     auto result = current_grammar_traits::test(subGrammar, accessWrapper.get());
+                     auto result = grammar_test(subGrammar, accessWrapper.get());
 
                      if (result.is_value()) {
                          auto thisParse = result.amount_parsed();
@@ -226,14 +243,14 @@ namespace randomcat::parser {
 
         template<typename TokenStream>
         struct traits_for {
-            using value_type = std::optional<typename grammar_traits<SubGrammar, TokenStream>::value_type>;
+            using value_type = std::optional<grammar_value_type_t<SubGrammar, TokenStream>>;
             using error_type = grammar_no_error;
             using result_type = parse_result<value_type, error_type>;
         };
 
         template<typename TokenStream>
         typename traits_for<TokenStream>::result_type test(TokenStream const& _tokenStream) const {
-            auto result = grammar_traits<SubGrammar, TokenStream>::test(m_subGrammar, _tokenStream);
+            auto result = grammar_test(m_subGrammar, _tokenStream);
             if (result.is_value()) {
                 auto amountParsed = result.amount_parsed();
                 return {std::move(result).value(), std::move(amountParsed)};
@@ -254,11 +271,9 @@ namespace randomcat::parser {
         template<typename TokenStream>
         struct traits_for {
             using value_type =
-                grammar_variant_detail::grammar_variant<type_container::type_list<SubGrammars...>,
-                                                        type_container::type_list<typename grammar_traits<SubGrammars, TokenStream>::value_type...>>;
+                grammar_variant_detail::grammar_variant<type_container::type_list<SubGrammars...>, type_container::type_list<grammar_value_type_t<SubGrammars, TokenStream>...>>;
             using error_type =
-                grammar_tuple_detail::grammar_tuple<type_container::type_list<SubGrammars...>,
-                                                    type_container::type_list<typename grammar_traits<SubGrammars, TokenStream>::error_type...>>;
+                grammar_tuple_detail::grammar_tuple<type_container::type_list<SubGrammars...>, type_container::type_list<grammar_error_type_t<SubGrammars, TokenStream>...>>;
 
             using result_type = parse_result<value_type, error_type>;
         };
@@ -272,15 +287,13 @@ namespace randomcat::parser {
         template<typename TokenStream, std::size_t... Is>
         typename traits_for<TokenStream>::result_type test_helper(std::index_sequence<Is...>, TokenStream const& _tokenStream) const {
             std::optional<typename traits_for<TokenStream>::result_type> result = std::nullopt;
-            std::tuple<std::optional<typename grammar_traits<SubGrammars, TokenStream>::error_type>...> error;
+            std::tuple<std::optional<grammar_error_type_t<SubGrammars, TokenStream>>...> error;
 
             ((
                  [&](auto const& subGrammar) {
                      if (result) return;
 
-                     using current_grammar_traits = grammar_traits<std::tuple_element_t<Is, decltype(m_subGrammars)>, TokenStream>;
-
-                     auto parseResult = current_grammar_traits::test(subGrammar, _tokenStream);
+                     auto parseResult = grammar_test(subGrammar, _tokenStream);
                      if (parseResult) {
                          auto amountParsed = parseResult.amount_parsed();
                          result = typename traits_for<TokenStream>::result_type(typename traits_for<TokenStream>::value_type{std::in_place_index<Is>,
@@ -310,15 +323,15 @@ namespace randomcat::parser {
 
         template<typename TokenStream>
         struct traits_for {
-            using value_type = typename grammar_traits<Base, TokenStream>::value_type;
-            using error_type = typename grammar_traits<Base, TokenStream>::error_type;
-            using result_type = typename grammar_traits<Base, TokenStream>::result_type;
+            using value_type = grammar_value_type_t<Base, TokenStream>;
+            using error_type = grammar_error_type_t<Base, TokenStream>;
+            using result_type = grammar_result_type_t<Base, TokenStream>;
         };
 
         template<typename TokenStream>
         constexpr typename traits_for<TokenStream>::result_type test(TokenStream const& _tokenStream) const
-            noexcept(noexcept(grammar_traits<Base, TokenStream>::test(m_subGrammar, _tokenStream))) {
-            return grammar_traits<Base, TokenStream>::test(m_subGrammar, _tokenStream);
+            noexcept(noexcept(grammar_test(m_subGrammar, _tokenStream))) {
+            return grammar_test(m_subGrammar, _tokenStream);
         }
 
     private:
