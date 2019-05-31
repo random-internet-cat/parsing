@@ -451,4 +451,30 @@ namespace randomcat::parser {
         ElementGrammar m_elementGrammar;
         SeparatorGrammar m_separatorGrammar;
     };
+    
+    template<typename SubGrammar, typename Mapper>
+    class map_value_grammar {
+    public:
+        explicit map_value_grammar(SubGrammar _subGrammar, Mapper _mapper) : m_subGrammar(std::move(_subGrammar)), m_mapper(std::move(_mapper)) {}
+        
+        template<typename TokenStream>
+        struct traits_for {            
+            using value_type = std::decay_t<std::invoke_result_t<Mapper const&, grammar_value_type_t<SubGrammar, TokenStream>&&>>;
+            using error_type = grammar_error_type_t<SubGrammar, TokenStream>;
+            using result_type = parse_result<value_type, error_type>;
+        };
+        
+        template<typename TokenStream>
+        typename traits_for<TokenStream>::result_type test(TokenStream const& _tokenStream) const {
+            auto result = grammar_test(m_subGrammar, _tokenStream);
+            if (result.is_error()) return result.error();
+            
+            auto amountParsed = result.amount_parsed();
+            return {m_mapper(std::move(result).value()), std::move(amountParsed)};
+        }
+        
+    private:
+        SubGrammar m_subGrammar;
+        Mapper m_mapper;
+    };
 }    // namespace randomcat::parser
