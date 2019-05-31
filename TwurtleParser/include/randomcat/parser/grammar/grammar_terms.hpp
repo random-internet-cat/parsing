@@ -366,4 +366,89 @@ namespace randomcat::parser {
     private:
         Generator m_generator;
     };
+
+    template<typename ElementGrammar, typename SeparatorGrammar>
+    class left_recursive_grammar {
+    public:
+        explicit left_recursive_grammar(ElementGrammar _elementGrammar, SeparatorGrammar _separatorGrammar)
+        : m_elementGrammar(std::move(_elementGrammar)), m_separatorGrammar(std::move(_separatorGrammar)) {}
+
+        template<typename TokenStream>
+        struct traits_for {
+            class value_type {
+            private:
+                using separator_value = grammar_value_type_t<SeparatorGrammar, TokenStream>;
+                using element_value = grammar_value_type_t<ElementGrammar, TokenStream>;
+
+            public:
+                bool has_left() const noexcept {
+                    return bool(m_pLeft);
+                }
+                
+                value_type const& left_tree() const noexcept {
+                    return std::get<0>(*m_pLeft);
+                }
+                
+                separator_value const& left_separator() const noexcept {
+                    return std::get<1>(*m_pLeft);
+                }
+                
+                element_value const& right() const noexcept {
+                    return m_right;
+                }
+                
+            private:
+                template<typename, typename>
+                friend class left_recursive_grammar;
+                
+                explicit value_type(element_value _right) : m_right(std::move(_right)) {}
+                
+                void emplace_left(value_type _leftTree, separator_value _leftSeparator) {
+                    m_pLeft = std::make_unique<std::pair<value_type, separator_value>>>(std::move(_leftTree), std::move(_leftSeparator));
+                }
+                
+                value_type& left_tree() noexcept {
+                    return std::get<0>(*m_pLeft);
+                }
+                
+                std::unique_ptr<std::pair<value_type, separator_value>> m_pLeft;
+                element_value m_right;
+            };
+            
+            using error_type = grammar_error_type_t<ElementGrammar, TokenStream>;
+            using result_type = parse_result<value_type, error_type>;
+        };
+        
+        template<typename TokenStream>
+        typename traits_for<TokenStream>::result_type test(TokenStream const& _tokenStream) {
+            typename token_stream_traits<TokenStream>::access_wrapper accessWrapper(_tokenStream);
+            
+            auto firstElem = grammar_test(m_elementGrammar, accessWrapper.get());
+            if (firstElem.is_error()) return std::move(firstElem).error();
+            
+            accessWrapper.advance(firstElem.amount_parsed());
+            
+            using value_type = typename traits_for<TokenStream>::value_type;
+
+            value_type wholeTree = value_type(std::move(firstElem).value());
+            auto* currentSubTree = std::addressof(wholeTree);
+            
+            while (true) {
+                auto separatorParse = grammar_test(m_separatorGrammar, _tokenStream);
+                if (not separatorParse) return std::move(wholeTree);
+                accessWrapper.advance(separatorParse.amount_parsed());
+                
+                auto elementParse = grammar_test(m_elementGrammar, _tokenStream);
+                if (not elementParse) return std::move(wholeTree);
+                accessWrapper.advance(separatorParse.amount_parsed());
+                
+                currentSubTree->emplace_left(value_type(std::move(elementParse).value()), std::move(separatorParse).value());
+                currentSubTree = std::addressof(currentSubTree->left_tree());
+            }
+        }
+
+    private:
+        ElementGrammar m_elementGrammar;
+        SeparatorGrammar m_separatorGrammar;
+    };
 }    // namespace randomcat::parser
