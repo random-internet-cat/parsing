@@ -47,11 +47,19 @@ namespace randomcat::parser {
 
             token_type peek() const { return token_stream_traits::peek(source()); }
 
-            token_type read() { return token_stream_traits::read(source()); }
+            token_type read() {
+                ++m_amountParsed;
+                return token_stream_traits::read(source());
+            }
 
-            void advance(size_type _n = 1) { return token_stream_traits::advance(source(), _n); }
+            void advance(size_type _n = 1) {
+                m_amountParsed += _n;
+                return token_stream_traits::advance(source(), _n);
+            }
 
             TokenStream const& get() const noexcept { return m_source; }
+
+            size_type amount_parsed() const noexcept { return m_amountParsed; }
 
         private:
             location_type m_startHead;
@@ -59,6 +67,7 @@ namespace randomcat::parser {
             TokenStream& source() const noexcept { return const_cast<TokenStream&>(m_source.get()); }
 
             std::reference_wrapper<TokenStream const> m_source;
+            size_type m_amountParsed = 0;
         };
     };
 
