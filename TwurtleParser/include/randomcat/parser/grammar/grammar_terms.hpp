@@ -404,7 +404,6 @@ namespace randomcat::parser {
                 explicit value_type(element_value _right) : m_right(std::move(_right)) {}
                 
                 explicit value_type(value_type _leftTree, separator_value _separator, element_value _right) : m_pLeft(std::make_unique<std::pair<value_type, separator_value>>(std::move(_leftTree), std::move(_separator))), m_right(std::move(_right)) {
-                    emplace_left(std::move(_leftTree), std::move(_separator));
                 }
 
                 std::unique_ptr<std::pair<value_type, separator_value>> m_pLeft;
