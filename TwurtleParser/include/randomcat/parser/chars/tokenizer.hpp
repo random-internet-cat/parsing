@@ -87,22 +87,22 @@ namespace randomcat::parser {
         using priority_type = default_priority_type;
         using size_type = char_traits_detail::size_type_t<string_type>;
 
-        explicit simple_token_descriptor(token_type _token, string_type _string) noexcept
+        constexpr explicit simple_token_descriptor(token_type _token, string_type _string) noexcept
         // This is okay, since braced-init-list rules guarantee left-to-right evalution
         : simple_token_descriptor{_token, gsl::narrow<priority_type>(_string.size()), std::move(_string)} {}
 
-        simple_token_descriptor(token_type _token, priority_type _priority, string_type _string) noexcept
+        constexpr simple_token_descriptor(token_type _token, priority_type _priority, string_type _string) noexcept
         : m_string(std::move(_string)), m_token(std::move(_token)), m_priority(std::move(_priority)) {}
 
         template<typename CharSource>
-        parse_result_type parse_first_token(CharSource const& _chars) const noexcept {
+        constexpr parse_result_type parse_first_token(CharSource const& _chars) const noexcept {
             if (char_source_traits<CharSource>::at_end(_chars)) return no_matching_token;
             if (m_string == char_source_traits<CharSource>::peek(_chars, size())) return {m_token, size()};
 
             return no_matching_token;
         }
 
-        priority_type priority() const noexcept { return m_priority; }
+        constexpr priority_type priority() const noexcept { return m_priority; }
 
     private:
         size_type size() const noexcept { return m_string.size(); }
@@ -129,22 +129,22 @@ namespace randomcat::parser {
         using priority_type = default_priority_type;
         using size_type = char_traits_detail::size_type_t<string_type>;
 
-        explicit multi_form_token_descriptor(token_type _token, priority_type _priority, Strings... _strings) noexcept
+        constexpr explicit multi_form_token_descriptor(token_type _token, priority_type _priority, Strings... _strings) noexcept
         : m_strings(std::move(_strings)...), m_token(std::move(_token)), m_priority(std::move(_priority)) {}
 
         template<typename CharSource>
-        parse_result_type parse_first_token(CharSource const& _chars) const noexcept {
+        constexpr parse_result_type parse_first_token(CharSource const& _chars) const noexcept {
             if (char_source_traits<CharSource>::at_end(_chars)) return no_matching_token;
             return parse_first_token_helper(std::make_index_sequence<num_strings>(), _chars);
         }
 
-        auto priority() const noexcept { return m_priority; }
+        constexpr auto priority() const noexcept { return m_priority; }
 
     private:
         static constexpr auto num_strings = sizeof...(Strings);
 
         template<std::size_t... Is, typename CharSource>
-        parse_result_type parse_first_token_helper(std::index_sequence<Is...>, CharSource const& _input) const noexcept {
+        constexpr parse_result_type parse_first_token_helper(std::index_sequence<Is...>, CharSource const& _input) const noexcept {
             bool done = false;
             size_type charsRead;
 
@@ -171,7 +171,7 @@ namespace randomcat::parser {
     };
 
     template<typename Token, typename... Strings>
-    inline auto make_multi_form_token_descriptor(Token _token, std::int32_t _priority, Strings&&... _strings) noexcept {
+    constexpr inline auto make_multi_form_token_descriptor(Token _token, std::int32_t _priority, Strings&&... _strings) noexcept {
         return multi_form_token_descriptor<Token, util_detail::first_t<std::string, Strings>...>(_token, _priority, std::forward<Strings>(_strings)...);
     }
 
@@ -251,12 +251,12 @@ namespace randomcat::parser {
     };
 
     template<typename Token, typename... TokenDescriptions>
-    inline simple_tokenizer<Token, TokenDescriptions...> make_simple_tokenizer(TokenDescriptions... _parsers) {
+    constexpr inline simple_tokenizer<Token, TokenDescriptions...> make_simple_tokenizer(TokenDescriptions... _parsers) {
         return simple_tokenizer<Token, TokenDescriptions...>(std::move(_parsers)...);
     }
 
     template<typename Tokenizer, typename CharSource>
-    inline parse_result<std::vector<typename tokenizer_traits<Tokenizer>::token_type>, typename tokenizer_traits<Tokenizer>::error_type> tokenize(
+    constexpr inline parse_result<std::vector<typename tokenizer_traits<Tokenizer>::token_type>, typename tokenizer_traits<Tokenizer>::error_type> tokenize(
         Tokenizer const& _tokenizer,
         CharSource const& _chars) {
         using token_type = char_traits_detail::token_type_t<tokenizer_traits<Tokenizer>>;

@@ -102,58 +102,59 @@ namespace randomcat::parser {
             access_wrapper(access_wrapper&&) = delete;
             access_wrapper& operator=(access_wrapper&&) = delete;
 
-            explicit access_wrapper(CharSource const& _source) : m_source(_source), m_startHead(char_source_traits::head(m_source.get())) {}
+            constexpr explicit access_wrapper(CharSource const& _source)
+            : m_source(_source), m_startHead(char_source_traits::head(m_source.get())) {}
 
             ~access_wrapper() noexcept { char_source_traits::set_head(as_mutable(), m_startHead); }
 
-            auto peek(size_type _n) const noexcept(noexcept(char_source_traits::peek(as_immutable(), _n))) {
+            constexpr auto peek(size_type _n) const noexcept(noexcept(char_source_traits::peek(as_immutable(), _n))) {
                 return char_source_traits::peek(as_immutable(), _n);
             }
 
-            auto read(size_type _n) noexcept(noexcept(char_source_traits::read(as_mutable(), _n))) {
+            constexpr auto read(size_type _n) noexcept(noexcept(char_source_traits::read(as_mutable(), _n))) {
                 auto strRead = char_source_traits::read(as_mutable(), _n);
                 m_charsParsed += size(strRead);
                 return strRead;
             }
 
-            auto at_end() const noexcept(noexcept(char_source_traits::at_end(as_immutable()))) {
+            constexpr auto at_end() const noexcept(noexcept(char_source_traits::at_end(as_immutable()))) {
                 return char_source_traits::at_end(as_immutable());
             }
 
-            auto peek_char() const noexcept(noexcept(char_source_traits::peek_char(as_immutable()))) {
+            constexpr auto peek_char() const noexcept(noexcept(char_source_traits::peek_char(as_immutable()))) {
                 return char_source_traits::peek_char(as_immutable());
             }
 
-            auto read_char() noexcept(noexcept(char_source_traits::read_char(as_mutable()))) {
+            constexpr auto read_char() noexcept(noexcept(char_source_traits::read_char(as_mutable()))) {
                 m_charsParsed += 1;
                 return char_source_traits::read_char(as_mutable());
             }
 
-            void advance_head(size_type _n) noexcept(noexcept(char_source_traits::advance_head(as_mutable(), _n))) {
+            constexpr void advance_head(size_type _n) noexcept(noexcept(char_source_traits::advance_head(as_mutable(), _n))) {
                 m_charsParsed += _n;
                 char_source_traits::advance_head(as_mutable(), _n);
             }
 
-            location_type head() const noexcept(noexcept(char_source_traits::head(as_immutable()))) {
+            constexpr location_type head() const noexcept(noexcept(char_source_traits::head(as_immutable()))) {
                 return char_source_traits::head(as_immutable());
             }
 
-            bool next_is(string_view_type _str) const noexcept(noexcept(at_end()) && noexcept(peek(size(_str)))) {
+            constexpr bool next_is(string_view_type _str) const noexcept(noexcept(at_end()) && noexcept(peek(size(_str)))) {
                 if (at_end()) return false;
 
                 auto const readStr = peek(size(_str));
                 return readStr == _str;
             }
 
-            bool next_is(char_type _c) const noexcept(noexcept(at_end()) && noexcept(peek_char())) {
+            constexpr bool next_is(char_type _c) const noexcept(noexcept(at_end()) && noexcept(peek_char())) {
                 if (at_end()) return false;
 
                 auto const readChar = peek_char();
                 return readChar == _c;
             }
 
-            parse_result<void, failed_expectation_t> expect(string_view_type _str) noexcept(noexcept(next_is(_str))
-                                                                                            && noexcept(advance_head(std::declval<size_type>()))) {
+            constexpr parse_result<void, failed_expectation_t> expect(string_view_type _str) noexcept(
+                noexcept(next_is(_str)) && noexcept(advance_head(std::declval<size_type>()))) {
                 if (next_is(_str)) {
                     size_type strlen = size(_str);
                     advance_head(strlen);
@@ -163,8 +164,8 @@ namespace randomcat::parser {
                 return failed_expectation;
             }
 
-            parse_result<void, failed_expectation_t> expect(char_type _c) noexcept(noexcept(next_is(_c))
-                                                                                   && noexcept(advance_head(std::declval<size_type>()))) {
+            constexpr parse_result<void, failed_expectation_t> expect(char_type _c) noexcept(noexcept(next_is(_c))
+                                                                                             && noexcept(advance_head(std::declval<size_type>()))) {
                 if (next_is(_c)) {
                     size_type strlen = 1;
                     advance_head(strlen);
@@ -174,10 +175,10 @@ namespace randomcat::parser {
                 return failed_expectation;
             }
 
-            size_type chars_parsed() const noexcept { return m_charsParsed; }
+            constexpr size_type chars_parsed() const noexcept { return m_charsParsed; }
 
             template<typename F>
-            decltype(auto) sub_parse(F&& _f) const noexcept(noexcept(std::forward<F>(_f)(as_immutable()))) {
+            constexpr decltype(auto) sub_parse(F&& _f) const noexcept(noexcept(std::forward<F>(_f)(as_immutable()))) {
                 return std::forward<F>(_f)(as_immutable());
             }
 
