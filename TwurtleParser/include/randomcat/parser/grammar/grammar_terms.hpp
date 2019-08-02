@@ -189,6 +189,8 @@ namespace randomcat::parser {
     template<typename... SubGrammars>
     class sequence_grammar : grammar_base {
     public:
+        static_assert((is_grammar_v<SubGrammars> && ...));
+        
         template<typename TokenStream>
         struct traits_for {
             using value_type =
@@ -247,6 +249,8 @@ namespace randomcat::parser {
     template<typename SubGrammar>
     class optional_grammar : grammar_base {
     public:
+        static_assert(is_grammar_v<SubGrammar>);
+        
         constexpr explicit optional_grammar(SubGrammar _subGrammar) : m_subGrammar(std::move(_subGrammar)) {}
 
         template<typename TokenStream>
@@ -274,6 +278,8 @@ namespace randomcat::parser {
     template<typename... SubGrammars>
     class selection_grammar : grammar_base {
     public:
+        static_assert((is_grammar_v<SubGrammars> && ...));
+        
         constexpr explicit selection_grammar(SubGrammars... _subGrammars) : m_subGrammars{std::move(_subGrammars)...} {}
 
         template<typename TokenStream>
@@ -326,6 +332,7 @@ namespace randomcat::parser {
     class tag_grammar_t : grammar_base {
     public:
         static_assert(util_detail::is_simple_type_v<Base>);
+        static_assert(is_grammar_v<Base>);
 
         constexpr explicit tag_grammar_t(Base _subGrammar) : m_subGrammar(std::move(_subGrammar)) {}
 
@@ -354,6 +361,9 @@ namespace randomcat::parser {
     template<typename ElementGrammar, typename SeparatorGrammar>
     class left_recursive_grammar : grammar_base {
     public:
+        static_assert(is_grammar_v<ElementGrammar>);
+        static_assert(is_grammar_v<SeparatorGrammar>);
+
         explicit left_recursive_grammar(ElementGrammar _elementGrammar, SeparatorGrammar _separatorGrammar)
         : m_elementGrammar(std::move(_elementGrammar)), m_separatorGrammar(std::move(_separatorGrammar)) {}
 
@@ -434,6 +444,8 @@ namespace randomcat::parser {
     template<typename SubGrammar, typename Mapper>
     class map_value_grammar : grammar_base {
     public:
+        static_assert(is_grammar_v<SubGrammar>);
+        
         constexpr explicit map_value_grammar(SubGrammar _subGrammar, Mapper _mapper) : m_subGrammar(std::move(_subGrammar)), m_mapper(std::move(_mapper)) {}
         
         template<typename TokenStream>
