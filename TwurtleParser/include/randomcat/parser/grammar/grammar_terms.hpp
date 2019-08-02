@@ -3,6 +3,7 @@
 #include <optional>
 #include <tuple>
 #include <variant>
+#include <type_traits>
 
 #include <randomcat/type_container/type_list.hpp>
 
@@ -10,6 +11,13 @@
 #include "randomcat/parser/tokens/token_stream/token_stream.hpp"
 
 namespace randomcat::parser {
+    struct grammar_base {};
+    
+    
+    // This may be specialized
+    template<typename T>
+    inline constexpr auto is_grammar_v = std::is_base_of_v<grammar_base, T>;
+    
     template<typename Grammar, typename TokenStream>
     struct grammar_traits {
         using __traits = typename Grammar::template traits_for<TokenStream>;
@@ -52,7 +60,7 @@ namespace randomcat::parser {
     inline constexpr grammar_non_match_t grammar_non_match;
 
     template<typename Matches>
-    class single_token_grammar {
+    class single_token_grammar : grammar_base {
     public:
         template<typename TokenStream>
         struct traits_for {
@@ -179,7 +187,7 @@ namespace randomcat::parser {
     using grammar_tuple_detail::get;
 
     template<typename... SubGrammars>
-    class sequence_grammar {
+    class sequence_grammar : grammar_base {
     public:
         template<typename TokenStream>
         struct traits_for {
@@ -237,7 +245,7 @@ namespace randomcat::parser {
     struct grammar_no_error {};
 
     template<typename SubGrammar>
-    class optional_grammar {
+    class optional_grammar : grammar_base {
     public:
         constexpr explicit optional_grammar(SubGrammar _subGrammar) : m_subGrammar(std::move(_subGrammar)) {}
 
@@ -264,7 +272,7 @@ namespace randomcat::parser {
     };
 
     template<typename... SubGrammars>
-    class selection_grammar {
+    class selection_grammar : grammar_base {
     public:
         constexpr explicit selection_grammar(SubGrammars... _subGrammars) : m_subGrammars{std::move(_subGrammars)...} {}
 
@@ -315,7 +323,7 @@ namespace randomcat::parser {
     };
 
     template<typename Base, typename... Tags>
-    class tag_grammar_t {
+    class tag_grammar_t : grammar_base {
     public:
         static_assert(util_detail::is_simple_type_v<Base>);
 
@@ -343,9 +351,8 @@ namespace randomcat::parser {
         return tag_grammar_t<Base, Tags...>(std::move(_baseGrammar));
     }
 
-
     template<typename ElementGrammar, typename SeparatorGrammar>
-    class left_recursive_grammar {
+    class left_recursive_grammar : grammar_base {
     public:
         explicit left_recursive_grammar(ElementGrammar _elementGrammar, SeparatorGrammar _separatorGrammar)
         : m_elementGrammar(std::move(_elementGrammar)), m_separatorGrammar(std::move(_separatorGrammar)) {}
@@ -425,7 +432,7 @@ namespace randomcat::parser {
     };
     
     template<typename SubGrammar, typename Mapper>
-    class map_value_grammar {
+    class map_value_grammar : grammar_base {
     public:
         constexpr explicit map_value_grammar(SubGrammar _subGrammar, Mapper _mapper) : m_subGrammar(std::move(_subGrammar)), m_mapper(std::move(_mapper)) {}
         
