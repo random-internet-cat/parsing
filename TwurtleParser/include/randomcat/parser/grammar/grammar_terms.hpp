@@ -343,29 +343,6 @@ namespace randomcat::parser {
         return tag_grammar_t<Base, Tags...>(std::move(_baseGrammar));
     }
 
-    template<typename Generator>
-    class indirect_grammar {
-    public:
-        explicit indirect_grammar(Generator _generator) : m_generator(std::move(_generator)) {}
-
-        template<typename TokenStream>
-        struct traits_for {
-            using __decayed_result = std::decay_t<std::invoke_result_t<Generator const&>>;
-
-            using value_type = grammar_value_type_t<__decayed_result, TokenStream>;
-            using error_type = grammar_error_type_t<__decayed_result, TokenStream>;
-            using result_type = grammar_result_type_t<__decayed_result, TokenStream>;
-        };
-
-        template<typename TokenStream>
-        constexpr typename traits_for<TokenStream>::result_type test(TokenStream const& _stream) const
-            noexcept(noexcept(grammar_test<typename traits_for<TokenStream>::__decayed_result, TokenStream>(m_generator(), _stream))) {
-            return grammar_test(m_generator(), _stream);
-        }
-
-    private:
-        Generator m_generator;
-    };
 
     template<typename ElementGrammar, typename SeparatorGrammar>
     class left_recursive_grammar {
