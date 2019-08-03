@@ -18,6 +18,21 @@ namespace randomcat::parser {
     template<typename T>
     inline constexpr auto is_grammar_v = std::is_base_of_v<grammar_base, T>;
     
+    namespace grammar_detail {
+        template<typename T, typename Default, typename = void>
+        struct context_type {
+            using type = Default;
+        };
+        
+        template<typename T, typename Default>
+        struct context_type<T, Default, typename T::context_type> {
+            using type = typename T::context_type;
+        };
+        
+        template<typename T, typename Default>
+        using context_type_t = typename context_type<T, Default>::type;
+    }
+    
     template<typename Grammar, typename TokenStream>
     struct grammar_traits {
         using __traits = typename Grammar::template traits_for<TokenStream>;
@@ -25,14 +40,32 @@ namespace randomcat::parser {
         using value_type = typename __traits::value_type;
         using error_type = typename __traits::error_type;
         using result_type = parse_result<value_type, error_type>;
+        using context_type = grammar_detail::context_type_t<__traits, void>;
+        inline static constexpr auto has_context_type = not std::is_void_v<context_type>;
 
+        static_assert(not std::is_reference_v<context_type>);
+
+        template<bool Enable = not has_context_type, typename = std::enable_if_t<Enable>>
         constexpr static result_type advance_if_matches(Grammar const& _grammar, TokenStream& _tokenStream) {
             auto result = test(_grammar, _tokenStream);
             if (result) token_stream_traits<TokenStream>::advance(_tokenStream, result.amount_parsed());
             return result;
         }
 
+        template<bool Enable = not has_context_type, typename = std::enable_if_t<Enable>>
         constexpr static result_type test(Grammar const& _grammar, TokenStream const& _tokenStream) { return _grammar.test(_tokenStream); }
+
+        template<bool Enable = has_context_type>
+        constexpr static result_type advance_if_matches(Grammar const& _grammar, TokenStream& _tokenStream, std::enable_if_t<Enable, context_type>& _context) {
+            auto result = test(_grammar, _tokenStream, _context);
+            if (result) token_stream_traits<TokenStream>::advance(_tokenStream, result.amount_parsed());
+            return result;
+        }
+
+        template<bool Enable = has_context_type>
+        constexpr static result_type test(Grammar const& _grammar, TokenStream const& _tokenStream, std::enable_if_t<Enable, context_type>& _context) {
+            return _grammar.test(_tokenStream, _context);
+        }
     };
 
     template<typename Grammar, typename TokenStream>
@@ -54,6 +87,18 @@ namespace randomcat::parser {
     constexpr inline auto grammar_advance_if_matches(Grammar const& _grammar, TokenStream& _tokenStream)
         -> decltype(grammar_traits<Grammar, TokenStream>::advance_if_matches(_grammar, _tokenStream)) {
         return grammar_traits<Grammar, TokenStream>::advance_if_matches(_grammar, _tokenStream);
+    }
+
+    template<typename Grammar, typename TokenStream, typename Context>
+    constexpr inline auto grammar_test(Grammar const& _grammar, TokenStream const& _tokenStream, Context& _context)
+    -> decltype(grammar_traits<Grammar, TokenStream>::test(_grammar, _tokenStream, _context)) {
+        return grammar_traits<Grammar, TokenStream>::test(_grammar, _tokenStream, _context);
+    }
+
+    template<typename Grammar, typename TokenStream, typename Context, typename = std::enable_if_t<not std::is_const_v<TokenStream>>>
+    constexpr inline auto grammar_advance_if_matches(Grammar const& _grammar, TokenStream& _tokenStream, Context& _context)
+    -> decltype(grammar_traits<Grammar, TokenStream>::advance_if_matches(_grammar, _tokenStream, _context)) {
+        return grammar_traits<Grammar, TokenStream>::advance_if_matches(_grammar, _tokenStream, _context);
     }
 
     struct grammar_non_match_t {};
