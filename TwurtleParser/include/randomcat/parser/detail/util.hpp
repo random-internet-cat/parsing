@@ -25,6 +25,27 @@ namespace randomcat::parser::util_detail {
     inline constexpr bool all_are_same_v = all_are_same<Ts...>::value;
 
     template<typename... Ts>
+    struct all_are_same_or_void;
+    
+    template<>
+    struct all_are_same_or_void<> : std::true_type {};
+    
+    template<typename T>
+    struct all_are_same_or_void : std::true_type {};
+    
+    template<typename... Rest>
+    struct all_are_same_or_void<void, Rest...> : all_are_same_or_void<Rest...> {};
+    
+    template<typename First, typename... Rest>
+    struct all_are_same_or_void<First, void, Rest...> : all_are_same_or_void<First, Rest...> {};
+    
+    template<typename First, typename Second, typename... Rest>
+    struct all_are_same_or_void<First, Second, Rest...> : std::conjunction<std::is_same<First, Second>, all_are_same_or_void<Second, Rest...>> {};
+
+    template<typename... Ts>
+    inline constexpr bool are_are_same_or_void_v = all_are_same_or_void<Ts...>::value;
+    
+    template<typename... Ts>
     struct first;
 
     template<typename First, typename... Ts>
