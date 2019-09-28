@@ -46,6 +46,20 @@ namespace randomcat::parser::util_detail {
     inline constexpr bool all_are_same_or_void_v = all_are_same_or_void<Ts...>::value;
     
     template<typename... Ts>
+    struct first_non_void_or_void;
+    
+    template<>
+    struct first_non_void_or_void<> {
+        using type = void;
+    };
+    
+    template<typename... Rest>
+    struct first_non_void_or_void<void, Rest...> : first_non_void_or_void<Rest...> {};
+    
+    template<typename... Ts>
+    using first_non_void_or_void_t = typename first_non_void_or_void<Ts...>::type;
+    
+    template<typename... Ts>
     struct first;
 
     template<typename First, typename... Ts>
