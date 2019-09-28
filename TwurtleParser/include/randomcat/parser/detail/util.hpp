@@ -43,7 +43,7 @@ namespace randomcat::parser::util_detail {
     struct all_are_same_or_void<First, Second, Rest...> : std::conjunction<std::is_same<First, Second>, all_are_same_or_void<Second, Rest...>> {};
 
     template<typename... Ts>
-    inline constexpr bool are_are_same_or_void_v = all_are_same_or_void<Ts...>::value;
+    inline constexpr bool all_are_same_or_void_v = all_are_same_or_void<Ts...>::value;
     
     template<typename... Ts>
     struct first;
