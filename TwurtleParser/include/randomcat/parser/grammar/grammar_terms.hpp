@@ -76,6 +76,9 @@ namespace randomcat::parser {
 
     template<typename Grammar, typename TokenStream>
     using grammar_result_type_t = typename grammar_traits<Grammar, TokenStream>::result_type;
+    
+    template<typename Grammar, typename TokenStream>
+    using grammar_context_type_t = typename grammar_traits<Grammar, TokenStream>::context_type;
 
     template<typename Grammar, typename TokenStream>
     constexpr inline auto grammar_test(Grammar const& _grammar, TokenStream const& _tokenStream)
