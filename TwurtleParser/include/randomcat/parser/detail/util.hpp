@@ -13,7 +13,7 @@ namespace randomcat::parser::util_detail {
     struct all_are_same;
 
     template<>
-    struct all_are_same<>;
+    struct all_are_same<> : std::true_type {};
 
     template<typename T>
     struct all_are_same<T> : std::true_type {};
