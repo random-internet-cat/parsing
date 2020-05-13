@@ -1,0 +1,10 @@
+"Str First"
+
+//break do continue const_cast char16_t
+
+.between "Str second"
+
+    __0_? "This is? a\"\\\\\' string!"+ //comment ++++?
+    +++(/*std::hello)+ ++;*/ R"( Raw string """""""" \ literal! )";
+
+    
